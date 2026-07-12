@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>노래 가사 배우기</title>
+<style>
+  :root{
+    --pink:#ff8fab;
+    --blue:#5aa9ff;
+    --green:#4fc98a;
+    --bg:#fffaf3;
+    --ink:#2b2b2b;
+    --card:#ffffff;
+    --shadow:0 6px 0 rgba(0,0,0,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Malgun Gothic','Noto Sans KR',system-ui,-apple-system,sans-serif;
+    font-size:22px;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+    overflow-x:hidden;
+  }
+  #app{max-width:1000px;margin:0 auto;padding:24px 20px 60px;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ---------- HOME SCREEN ---------- */
+  #home-screen h1{
+    text-align:center;
+    font-size:44px;
+    margin:10px 0 6px;
+  }
+  #home-screen .subtitle{
+    text-align:center;
+    font-size:24px;
+    color:#666;
+    margin-bottom:36px;
+  }
+  .song-buttons{
+    display:flex;
+    flex-direction:column;
+    gap:26px;
+  }
+  .song-btn{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    width:100%;
+    background:var(--card);
+    border:none;
+    border-radius:28px;
+    padding:26px 30px;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    text-align:left;
+    transition:transform .08s ease;
+  }
+  .song-btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,0.12);}
+  .song-btn .icon{font-size:56px;flex:0 0 auto;}
+  .song-btn .txt{display:flex;flex-direction:column;gap:4px;}
+  .song-btn .song-num{
+    display:inline-block;
+    font-size:20px;
+    font-weight:700;
+    color:#fff;
+    background:var(--blue);
+    border-radius:999px;
+    padding:4px 16px;
+    width:fit-content;
+  }
+  .song-btn:nth-child(1) .song-num{background:var(--pink);}
+  .song-btn:nth-child(2) .song-num{background:var(--blue);}
+  .song-btn:nth-child(3) .song-num{background:var(--green);}
+  .song-btn .song-title{font-size:34px;font-weight:800;}
+
+  /* ---------- SONG SCREEN ---------- */
+  #back-btn{
+    font-size:26px;
+    font-weight:700;
+    background:#eee;
+    border:none;
+    border-radius:18px;
+    padding:14px 26px;
+    cursor:pointer;
+    margin-bottom:18px;
+  }
+  #back-btn:active{background:#ddd;}
+
+  .title-area{
+    background:var(--card);
+    border-radius:28px;
+    padding:24px;
+    box-shadow:var(--shadow);
+    margin-bottom:30px;
+    text-align:center;
+  }
+  #song-title-display{
+    font-size:40px;
+    margin:4px 0 4px;
+  }
+  .trace-hint{
+    font-size:20px;
+    color:#777;
+    margin-bottom:14px;
+  }
+  .tracing-wrap{
+    position:relative;
+    width:100%;
+    max-width:900px;
+    margin:0 auto;
+    touch-action:none;
+  }
+  .tracing-wrap canvas{
+    position:absolute;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    border-radius:20px;
+  }
+  #guide-canvas{background:#fbfbf5;border:3px dashed #ddd;position:relative;}
+  #draw-canvas{background:transparent;cursor:crosshair;}
+
+  .tracing-controls{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    margin-top:16px;
+    flex-wrap:wrap;
+  }
+  .tracing-controls button{
+    font-size:24px;
+    font-weight:700;
+    border:none;
+    border-radius:18px;
+    padding:14px 24px;
+    cursor:pointer;
+    color:#fff;
+  }
+  #clear-trace-btn{background:#ff9f4d;}
+  #speak-title-btn{background:var(--green);}
+  .tracing-controls button:active{filter:brightness(0.92);}
+
+  /* ---------- LYRICS TABLE ---------- */
+  table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0 14px;
+  }
+  thead th{
+    font-size:22px;
+    color:#888;
+    font-weight:700;
+    padding:0 10px 4px;
+    text-align:left;
+  }
+  tbody tr{
+    background:var(--card);
+    box-shadow:var(--shadow);
+  }
+  tbody tr.chorus-row{background:#fff3e0;}
+  tbody tr{transition:background .12s ease, box-shadow .12s ease;}
+  tbody tr.row-singing{
+    background:#ffd54f !important;
+    box-shadow:0 0 0 4px #ff9f0a inset, var(--shadow);
+  }
+  tbody td{
+    padding:16px 18px;
+    vertical-align:middle;
+  }
+  tbody tr td:first-child{border-radius:20px 0 0 20px;width:260px;text-align:center;}
+  tbody tr td:last-child{border-radius:0 20px 20px 0;width:230px;text-align:center;}
+
+  .img-cell{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .img-cell img{width:230px;height:150px;object-fit:cover;border-radius:14px;}
+  .img-placeholder{
+    width:230px;height:150px;
+    border-radius:14px;
+    border:2px dashed #ccc;
+    display:flex;align-items:center;justify-content:center;
+    font-size:44px;
+    color:#bbb;
+    background:#fafafa;
+  }
+  .chorus-badge{
+    font-size:14px;
+    font-weight:700;
+    color:#fff;
+    background:#ff9f4d;
+    border-radius:999px;
+    padding:2px 10px;
+  }
+  .lyric-text{font-size:30px;font-weight:700;line-height:1.4;}
+
+  .tts-btn{
+    font-size:30px;
+    font-weight:800;
+    border:none;
+    border-radius:22px;
+    padding:20px 20px;
+    width:190px;
+    min-height:78px;
+    background:linear-gradient(180deg, #79c0ff, #3d8bf5);
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 6px 0 #2668c4, 0 9px 14px rgba(0,0,0,0.18);
+    transition:transform .06s ease, box-shadow .06s ease, filter .06s ease;
+  }
+  .tts-btn:active{
+    transform:translateY(6px);
+    box-shadow:0 0 0 #2668c4, 0 2px 6px rgba(0,0,0,0.18);
+    filter:brightness(0.96);
+  }
+
+  @media (min-width:700px){
+    .song-buttons{flex-direction:column;}
+    .lyric-text{font-size:32px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME SCREEN -->
+  <div id="home-screen" class="screen active">
+    <h1>🎵 AI윤리, 노래로 배워요</h1>
+    <div class="subtitle">배우고 싶은 노래를 눌러보세요!</div>
+    <div class="song-buttons">
+      <button class="song-btn" data-song="song1">
+        <span class="icon">🤖</span>
+        <span class="txt">
+          <span class="song-num">노래 1</span>
+          <span class="song-title">꼭꼭 AI 약속</span>
+        </span>
+      </button>
+      <button class="song-btn" data-song="song2">
+        <span class="icon">🔒</span>
+        <span class="txt">
+          <span class="song-num">노래 2</span>
+          <span class="song-title">우리만의 비밀 약속</span>
+        </span>
+      </button>
+      <button class="song-btn" data-song="song3">
+        <span class="icon">🌟</span>
+        <span class="txt">
+          <span class="song-num">노래 3</span>
+          <span class="song-title">약속 지키는 멋진 친구</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SONG SCREEN -->
+  <div id="song-screen" class="screen">
+    <button id="back-btn">← 처음으로</button>
+
+    <div class="title-area">
+      <h2 id="song-title-display"></h2>
+      <div class="trace-hint">손가락으로 글자를 따라 써 보세요 ✍️</div>
+      <div class="tracing-wrap">
+        <canvas id="guide-canvas"></canvas>
+        <canvas id="draw-canvas"></canvas>
+      </div>
+      <div class="tracing-controls">
+        <button id="clear-trace-btn">✏️ 다시 쓰기</button>
+        <button id="speak-title-btn">🔊 제목 듣기</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>그림</th><th>가사</th><th>듣기</th></tr>
+      </thead>
+      <tbody id="lyrics-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------------------------------------------------------------
+  // 노래 데이터
+  // 그림 파일은 이 html과 같은 폴더에 "노래번호-행번호.png" 이름으로 넣으면
+  // 자동으로 표시됩니다. 예: 1-7.png, 2-3.png, 3-1.png ...
+  // 파일이 없으면 자동으로 빈 그림틀이 표시됩니다.
+  // ---------------------------------------------------------------
+  var songs = {
+    song1: {
+      title: "꼭꼭 AI 약속",
+      lines: [
+        {text:"두 손을 날개처럼 펼치고 흔들흔들"},
+        {text:"비밀은 꼭꼭 숨기고 내 마음도 꼭 지켜"},
+        {text:"사진은 찰칵 찍어도 남의 건 올리지 마"},
+        {text:"말할 땐 쫑긋 귀 기울여 예쁜 말만 골라 가"},
+        {text:"진짜일까 갸웃 한 번 더 생각해"},
+        {text:"잠깐 멈춰 서 다시 한번 더"},
+        {text:"약속해 꼭꼭꼭 지켜요 꼭꼭꼭 (우와!)", chorus:true},
+        {text:"우리들의 AI 약속 꼭꼭꼭 (출발!)", chorus:true},
+        {text:"약속해 줘요 꼭꼭꼭 (우와!)", chorus:true},
+        {text:"우리들의 AI 약속 꼭꼭꼭", chorus:true},
+        {text:"손가락 브이 하고 점프 점프 뛰어봐"},
+        {text:"내가 본 것만 믿지 말고 천천히 살펴봐"},
+        {text:"친구의 이름과 얼굴 함부로 말하지 마"},
+        {text:"다정한 말 한마디로 우리 마음도 반짝"},
+        {text:"진짜일까 갸우뚱 한 번 더 생각해"},
+        {text:"잠깐 멈춰 서 다시 한번 더"},
+        {text:"약속해 꼭꼭꼭 지켜요 꼭꼭꼭 (우와!)", chorus:true},
+        {text:"우리들의 AI 약속 꼭꼭꼭 (출발!)", chorus:true},
+        {text:"약속해 줘요 꼭꼭꼭 (우와!)", chorus:true},
+        {text:"우리들의 AI 약속 꼭꼭꼭", chorus:true}
+      ]
+    },
+    song2: {
+      title: "우리만의 비밀 약속",
+      lines: [
+        {text:"에이아이 친구 안녕?"},
+        {text:"우리의 약속!"},
+        {text:"나의 비밀은 꼭 지킬 거야"},
+        {text:"예쁜 말만 에이아이에게 해 줄 거야"},
+        {text:"진짜인지 꼭 확인하며 사용할 거야"},
+        {text:"AI 친구야 신나게 놀자!"},
+        {text:"AI 친구야 신나게 놀자!"}
+      ]
+    },
+    song3: {
+      title: "약속 지키는 멋진 친구",
+      lines: [
+        {text:"에이아이 친구야 안녕?"},
+        {text:"나만의 비밀은 말하지 않을래"},
+        {text:"남의 사진 함부로 올리지 않을래"},
+        {text:"예쁜 말 고운 말만 쓸 거야"},
+        {text:"진짜인지 꼭 확인해 볼 거야"},
+        {text:"약속 지키는 멋진 친구!"},
+        {text:"AI 세상 즐겁게 만들자"},
+        {text:"만들자! 만들자!"}
+      ]
+    }
+  };
+
+  var homeScreen = document.getElementById('home-screen');
+  var songScreen = document.getElementById('song-screen');
+  var titleDisplay = document.getElementById('song-title-display');
+  var lyricsBody = document.getElementById('lyrics-body');
+  var backBtn = document.getElementById('back-btn');
+  var clearBtn = document.getElementById('clear-trace-btn');
+  var speakTitleBtn = document.getElementById('speak-title-btn');
+  var guideCanvas = document.getElementById('guide-canvas');
+  var drawCanvas = document.getElementById('draw-canvas');
+  var currentSongId = null;
+
+  var singingRow = null;
+
+  function clearSingingRow(){
+    if(singingRow){
+      singingRow.classList.remove('row-singing');
+      singingRow = null;
+    }
+  }
+
+  function speak(text, rowEl){
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    clearSingingRow();
+    var utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'ko-KR';
+    utter.rate = 0.85;
+    utter.pitch = 1.05;
+    if(rowEl){
+      utter.onstart = function(){
+        rowEl.classList.add('row-singing');
+        singingRow = rowEl;
+      };
+      utter.onend = clearSingingRow;
+      utter.onerror = clearSingingRow;
+    }
+    window.speechSynthesis.speak(utter);
+  }
+
+  function buildImageCell(songId, index, isChorus){
+    var wrap = document.createElement('div');
+    wrap.className = 'img-cell';
+
+    if(isChorus){
+      var badge = document.createElement('span');
+      badge.className = 'chorus-badge';
+      badge.textContent = '후렴';
+      wrap.appendChild(badge);
+    }
+
+    var songNum = songId.replace('song', '');
+    var rowNum = index + 1;
+    // 1-18, 1-20 그림 파일은 따로 없으므로 1-16 그림을 재사용합니다
+    var imageOverrides = { 'song1_18': '1-16.png', 'song1_20': '1-16.png' };
+    var overrideKey = songId + '_' + rowNum;
+    var img = document.createElement('img');
+    img.alt = '';
+    img.src = imageOverrides[overrideKey] || (songNum + '-' + rowNum + '.png');
+    img.onerror = function(){
+      wrap.removeChild(img);
+      var ph = document.createElement('div');
+      ph.className = 'img-placeholder';
+      ph.textContent = '🖼️';
+      wrap.appendChild(ph);
+    };
+    wrap.appendChild(img);
+    return wrap;
+  }
+
+  function renderLyrics(songId){
+    var song = songs[songId];
+    lyricsBody.innerHTML = '';
+    song.lines.forEach(function(line, idx){
+      var tr = document.createElement('tr');
+      if(line.chorus) tr.className = 'chorus-row';
+
+      var tdImg = document.createElement('td');
+      tdImg.appendChild(buildImageCell(songId, idx, !!line.chorus));
+      tr.appendChild(tdImg);
+
+      var tdText = document.createElement('td');
+      var span = document.createElement('span');
+      span.className = 'lyric-text';
+      span.textContent = line.text;
+      tdText.appendChild(span);
+      tr.appendChild(tdText);
+
+      var tdBtn = document.createElement('td');
+      var btn = document.createElement('button');
+      btn.className = 'tts-btn';
+      btn.innerHTML = '🔊';
+      btn.setAttribute('aria-label', '가사 듣기');
+      btn.addEventListener('click', function(){ speak(line.text, tr); });
+      tdBtn.appendChild(btn);
+      tr.appendChild(tdBtn);
+
+      lyricsBody.appendChild(tr);
+    });
+  }
+
+  // ---------------- tracing canvas ----------------
+  var drawCtx = null;
+  var isDrawing = false;
+  var lastX = 0, lastY = 0;
+
+  var tracingWrap = document.querySelector('.tracing-wrap');
+  var lastFontSize = 60;
+
+  function sizeCanvas(canvas){
+    var rect = canvas.parentElement.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx:ctx, w:rect.width, h:rect.height};
+  }
+
+  function drawGuideText(title){
+    // set the box height to snugly fit the text before measuring
+    var wrapWidth = tracingWrap.getBoundingClientRect().width;
+    var fontSize = Math.max(28, Math.min(90, Math.floor((wrapWidth * 1.5) / title.length)));
+    lastFontSize = fontSize;
+    tracingWrap.style.height = Math.round(fontSize * 1.35) + 'px';
+
+    var g = sizeCanvas(guideCanvas);
+    var ctx = g.ctx;
+    ctx.clearRect(0,0,g.w,g.h);
+    ctx.font = '800 ' + fontSize + 'px "Malgun Gothic","Noto Sans KR",sans-serif';
+    ctx.fillStyle = '#d6d6ce';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, g.w/2, g.h/2);
+  }
+
+  function resetDrawCanvas(){
+    var d = sizeCanvas(drawCanvas);
+    drawCtx = d.ctx;
+    drawCtx.lineWidth = 8;
+    drawCtx.lineCap = 'round';
+    drawCtx.lineJoin = 'round';
+    drawCtx.strokeStyle = '#2f6fed';
+  }
+
+  function getPos(evt){
+    var rect = drawCanvas.getBoundingClientRect();
+    var clientX = evt.clientX !== undefined ? evt.clientX : (evt.touches && evt.touches[0].clientX);
+    var clientY = evt.clientY !== undefined ? evt.clientY : (evt.touches && evt.touches[0].clientY);
+    return {x: clientX - rect.left, y: clientY - rect.top};
+  }
+
+  function startDraw(evt){
+    isDrawing = true;
+    var p = getPos(evt);
+    lastX = p.x; lastY = p.y;
+  }
+  function moveDraw(evt){
+    if(!isDrawing) return;
+    evt.preventDefault();
+    var p = getPos(evt);
+    drawCtx.beginPath();
+    drawCtx.moveTo(lastX, lastY);
+    drawCtx.lineTo(p.x, p.y);
+    drawCtx.stroke();
+    lastX = p.x; lastY = p.y;
+  }
+  function endDraw(){ isDrawing = false; }
+
+  drawCanvas.addEventListener('pointerdown', startDraw);
+  drawCanvas.addEventListener('pointermove', moveDraw);
+  window.addEventListener('pointerup', endDraw);
+  drawCanvas.addEventListener('pointerleave', endDraw);
+
+  clearBtn.addEventListener('click', function(){
+    resetDrawCanvas();
+  });
+
+  speakTitleBtn.addEventListener('click', function(){
+    if(currentSongId) speak(songs[currentSongId].title);
+  });
+
+  // ---------------- navigation ----------------
+  function showSong(songId){
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    singingRow = null;
+    currentSongId = songId;
+    var song = songs[songId];
+    titleDisplay.textContent = song.title;
+    homeScreen.classList.remove('active');
+    songScreen.classList.add('active');
+    renderLyrics(songId);
+    // canvas needs layout to settle before sizing
+    requestAnimationFrame(function(){
+      drawGuideText(song.title);
+      resetDrawCanvas();
+    });
+  }
+
+  function showHome(){
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    clearSingingRow();
+    songScreen.classList.remove('active');
+    homeScreen.classList.add('active');
+    currentSongId = null;
+  }
+
+  document.querySelectorAll('.song-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      showSong(btn.getAttribute('data-song'));
+    });
+  });
+  backBtn.addEventListener('click', showHome);
+
+  window.addEventListener('resize', function(){
+    if(currentSongId){
+      drawGuideText(songs[currentSongId].title);
+      resetDrawCanvas();
+    }
+  });
+})();
+</script>
+</body>
+</html>
