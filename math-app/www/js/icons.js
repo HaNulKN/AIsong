@@ -199,19 +199,28 @@
   }
 
   // 두 묶음을 "+" 기호로 합치는 장면 (덧셈용)
+  // A그룹과 B그룹은 서로 다른 개수를 가질 수 있으므로 각자 자신의 실제 개수 기준으로 독립적으로
+  // 배치한다(공통 cols를 max(countA,countB)로 잡으면, 개수가 적은 쪽의 실제 그림 너비가 그 공통
+  // 너비보다 훨씬 좁아져서 "+" 기호가 반대쪽 그림과 겹치는 문제가 생긴다).
   function renderCombineGroups(iconName, countA, countB, opts) {
     opts = opts || {};
-    var cols = Math.min(5, Math.max(countA, countB, 1));
-    var colW = cols * 46 + 20;
-    var rowsA = Math.ceil(countA / cols) || 1;
-    var rowsB = Math.ceil(countB / cols) || 1;
+    var colsA = Math.min(5, Math.max(countA, 1));
+    var colsB = Math.min(5, Math.max(countB, 1));
+    var rowsA = Math.ceil(countA / colsA) || 1;
+    var rowsB = Math.ceil(countB / colsB) || 1;
     var h = Math.max(rowsA, rowsB) * 46 + 46;
-    var w = colW * 2 + 40;
-    var ptsA = layoutGrid(countA, { cols: cols, spacingX: 46, spacingY: 46, startX: 30, startY: 30 });
-    var ptsB = layoutGrid(countB, { cols: cols, spacingX: 46, spacingY: 46, startX: colW + 40, startY: 30 });
+    var startXA = 30;
+    var widthA = colsA * 46 + 20; // A그룹이 실제로 차지하는 너비(아이콘 반지름 여유 포함)
+    var widthB = colsB * 46 + 20;
+    var gap = 70; // "+" 기호가 들어갈 고정 간격 — A그룹의 실제 끝과 B그룹 시작 사이
+    var startXB = startXA + widthA + gap;
+    var w = startXB + widthB - 20;
+    var ptsA = layoutGrid(countA, { cols: colsA, spacingX: 46, spacingY: 46, startX: startXA, startY: 30 });
+    var ptsB = layoutGrid(countB, { cols: colsB, spacingX: 46, spacingY: 46, startX: startXB, startY: 30 });
     var elements = ptsA.map(function (p) { return { icon: iconName, x: p.x, y: p.y, extra: opts.extraA }; })
       .concat(ptsB.map(function (p) { return { icon: iconName, x: p.x, y: p.y, extra: opts.extraB || opts.extraA }; }));
-    var plus = '<text x="' + (colW + 20) + '" y="' + (h / 2 + 10) + '" text-anchor="middle" font-size="34" font-weight="700" fill="#e0a63a">+</text>';
+    var plusX = startXA + widthA + gap / 2; // A그룹 실제 너비와 B그룹 시작 사이의 정중앙
+    var plus = '<text x="' + plusX + '" y="' + (h / 2 + 10) + '" text-anchor="middle" font-size="34" font-weight="700" fill="#e0a63a">+</text>';
     return buildScene(elements, { width: w, height: h, bg: plus, label: countA + '개 더하기 ' + countB + '개' });
   }
 
@@ -262,10 +271,16 @@
     var onesStartX = cursorX + Math.min(tens, perRowBundles) * 54 + 10;
     var onesY = y;
     if (tens > 0 && bundleRows > 1) { onesStartX = cursorX; onesY = y + bundleRows * 150; }
+    var onesRows = ones > 0 ? Math.ceil(ones / 5) : 0;
     var onesPts = layoutGrid(ones, { cols: 5, spacingX: 34, spacingY: 34, startX: onesStartX, startY: onesY });
     onesPts.forEach(function (p) { els.push({ icon: iconName, x: p.x, y: p.y, scale: 0.8, extra: color }); });
     var w = Math.max(onesStartX + 60, cursorX + Math.min(tens, perRowBundles) * 54 + 40);
-    var h = Math.max(140, bundleRows * 150 + 40, onesY + 60);
+    // 실제로 그려지는 내용의 최대 y좌표를 기준으로 높이를 계산한다(빈 여백 예약 금지).
+    // 묶음 사각형: top = by-24, height = 118 -> 실제 바닥 = by+94 (마지막 줄 기준)
+    var bundleBottom = tens > 0 ? (y + (bundleRows - 1) * 150 + 94) : y;
+    // 낱개 아이콘: scale 0.8 기준 반지름 여유 + 여백
+    var onesBottom = onesRows > 0 ? (onesY + (onesRows - 1) * 34 + 14) : onesY;
+    var h = Math.max(90, bundleBottom, onesBottom) + 24;
     return buildScene(els, { width: w, height: h, bg: bg.join(''), label: tens + '묶음 ' + ones + '개' });
   }
 
@@ -390,12 +405,16 @@
   }
 
   // 아날로그 시계
+  // opts.hotspot: true면 시침/분침 각각을 data-hotspot(0=시침, 1=분침)이 달린 탭 가능 영역으로 만든다.
+  // 실제 바늘(가는 선)은 손가락으로 짚기 어려우므로, 눈에는 안 보이지만 훨씬 두꺼운 히트라인을 겹쳐
+  // pointer-events로 받고, 정답/오답 시 바늘 끝에 원(hotspot-tip)이 나타나 시각 강조를 준다.
   function renderClock(hour, minute, opts) {
     opts = opts || {};
     var w = 220, h = 220, cx = 110, cy = 110, r = 92;
     var colorHour = opts.hourColor || '#e05a3c';
     var colorMinute = opts.minuteColor || '#3c6fe0';
     var hideNumbers = !!opts.hideNumbers;
+    var hotspot = !!opts.hotspot;
     var bg = [];
     bg.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#fffdf7" stroke="#3a3a3a" stroke-width="4"/>');
     for (var i = 0; i < 60; i++) {
@@ -417,10 +436,26 @@
     var minuteAngle = (minute / 60) * 360;
     var hourAngle = ((hour % 12) / 12) * 360 + (minute / 60) * 30;
     var minuteLen = r - 26, hourLen = r - 50;
-    var minEls = '<g transform="rotate(' + minuteAngle + ' ' + cx + ' ' + cy + ')">' +
-      '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - minuteLen) + '" stroke="' + colorMinute + '" stroke-width="5" stroke-linecap="round"/></g>';
-    var hourEls = '<g transform="rotate(' + hourAngle + ' ' + cx + ' ' + cy + ')">' +
-      '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - hourLen) + '" stroke="' + colorHour + '" stroke-width="7" stroke-linecap="round"/></g>';
+    var minEls, hourEls;
+    if (hotspot) {
+      hourEls = '<g class="hotspot" data-hotspot="0" tabindex="0" role="button" aria-label="짧은 바늘(시침)" ' +
+        'transform="rotate(' + hourAngle + ' ' + cx + ' ' + cy + ')">' +
+        '<line class="hotspot-hit" x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - hourLen) + '" stroke="#000" stroke-opacity="0.001" stroke-width="26" stroke-linecap="round" pointer-events="stroke"/>' +
+        '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - hourLen) + '" stroke="' + colorHour + '" stroke-width="7" stroke-linecap="round"/>' +
+        '<circle class="hotspot-tip" cx="' + cx + '" cy="' + (cy - hourLen) + '" r="11"/>' +
+        '</g>';
+      minEls = '<g class="hotspot" data-hotspot="1" tabindex="0" role="button" aria-label="긴 바늘(분침)" ' +
+        'transform="rotate(' + minuteAngle + ' ' + cx + ' ' + cy + ')">' +
+        '<line class="hotspot-hit" x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - minuteLen) + '" stroke="#000" stroke-opacity="0.001" stroke-width="26" stroke-linecap="round" pointer-events="stroke"/>' +
+        '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - minuteLen) + '" stroke="' + colorMinute + '" stroke-width="5" stroke-linecap="round"/>' +
+        '<circle class="hotspot-tip" cx="' + cx + '" cy="' + (cy - minuteLen) + '" r="11"/>' +
+        '</g>';
+    } else {
+      minEls = '<g transform="rotate(' + minuteAngle + ' ' + cx + ' ' + cy + ')">' +
+        '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - minuteLen) + '" stroke="' + colorMinute + '" stroke-width="5" stroke-linecap="round"/></g>';
+      hourEls = '<g transform="rotate(' + hourAngle + ' ' + cx + ' ' + cy + ')">' +
+        '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - hourLen) + '" stroke="' + colorHour + '" stroke-width="7" stroke-linecap="round"/></g>';
+    }
     var pin = '<circle cx="' + cx + '" cy="' + cy + '" r="7" fill="#3a3a3a"/>';
     return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" height="220" xmlns="' + NS + '" role="img" aria-label="시계 그림">' +
       bg.join('') + hourEls + minEls + pin + '</svg>';

@@ -187,6 +187,10 @@
       answerArea.innerHTML = '';
       answerArea.appendChild(grid);
       grid.addEventListener('click', mcClickHandler);
+    } else if (item.type === 'hotspot') {
+      // 정답 후보는 텍스트 보기가 아니라 #quiz-visual 안의 [data-hotspot] 요소 자체다.
+      // 클릭은 module-level hotspotClickHandler(이벤트 위임)에서 처리하므로 여기서는 보기 영역을 비운다.
+      answerArea.innerHTML = '';
     } else {
       answerArea.innerHTML =
         '<div class="numpad-input">' +
@@ -214,6 +218,28 @@
     gradeAndAdvance(idx);
   }
 
+  // type:'hotspot' 문항 전용: 정답 후보가 #quiz-visual 안의 [data-hotspot] 요소 자체이므로,
+  // 매 문항마다 답안 버튼을 새로 그리는 대신 #quiz-visual 자체에 한 번만 이벤트 위임을 건다.
+  function hotspotClickHandler(e) {
+    if (State.answered) return;
+    var session = State.sessions[State.currentDomainId];
+    var item = session && session.currentItem;
+    if (!item || item.type !== 'hotspot') return;
+    var spot = e.target.closest('[data-hotspot]');
+    if (!spot) return;
+    var idx = Number(spot.getAttribute('data-hotspot'));
+    gradeAndAdvance(idx);
+  }
+  function hotspotKeyHandler(e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var spot = e.target.closest && e.target.closest('[data-hotspot]');
+    if (!spot) return;
+    e.preventDefault();
+    hotspotClickHandler({ target: spot });
+  }
+  $('quiz-visual').addEventListener('click', hotspotClickHandler);
+  $('quiz-visual').addEventListener('keydown', hotspotKeyHandler);
+
   function numpadClickHandler(e) {
     var keyBtn = e.target.closest('.numpad-key');
     if (!keyBtn) return;
@@ -233,6 +259,7 @@
     var session = State.sessions[State.currentDomainId];
     var item = session.currentItem;
     var isMc = item.type === 'mc';
+    var isHotspot = item.type === 'hotspot';
     var res = Engine.submitAnswer(session, userAnswer);
     if (!res) return;
     State.answered = true;
@@ -243,6 +270,14 @@
         var idx = Number(b.getAttribute('data-index'));
         if (idx === userAnswer) b.classList.add(res.correct ? 'selected-correct' : 'selected-wrong');
         if (!res.correct && idx === item.correctIndex) b.classList.add('reveal-correct');
+      });
+    } else if (isHotspot) {
+      // 그림(또는 시계 바늘) 자체가 정답 후보이므로, 클릭된 요소와 정답 요소에 직접 시각 강조를 준다.
+      var spots = document.querySelectorAll('#quiz-visual [data-hotspot]');
+      spots.forEach(function (s) {
+        var idx = Number(s.getAttribute('data-hotspot'));
+        if (idx === userAnswer) s.classList.add(res.correct ? 'selected-correct' : 'selected-wrong');
+        if (!res.correct && idx === item.correctIndex) s.classList.add('reveal-correct');
       });
     } else {
       $('quiz-numeric-input').disabled = true;
@@ -265,7 +300,10 @@
       Sound.playCorrect();
     } else {
       fb.className = 'feedback-banner wrong';
-      var correctText = isMc ? item.options[item.correctIndex].text || item.options[item.correctIndex].speak : String(item.correctValue) + (item.suffix || '');
+      var correctText;
+      if (isMc) correctText = item.options[item.correctIndex].text || item.options[item.correctIndex].speak;
+      else if (isHotspot) correctText = item.correctLabel || '그림에 초록색으로 표시된 곳';
+      else correctText = String(item.correctValue) + (item.suffix || '');
       msg = '괜찮아요, 정답은 ' + correctText + '(이)에요.';
       $('character-stage').className = 'character-stage soft';
       $('character-stage').innerHTML = characterSvg('soft');

@@ -95,6 +95,22 @@
     };
   }
 
+  // 글을 읽지 못해도 풀 수 있는 문항: 정답 후보가 텍스트 보기가 아니라 visual(#quiz-visual) 안의
+  // 요소 자체다. visual 문자열 안에 data-hotspot="0", "1", ... 을 가진 요소들이 이미 심어져 있어야 하며,
+  // 그 요소를 직접 클릭/탭하면 correctIndex와 비교해 채점한다(gradeAndAdvance(idx) 파이프라인 재사용).
+  function hotspotItem(prompt, visual, correctIndex, opts) {
+    opts = opts || {};
+    return {
+      type: 'hotspot',
+      prompt: prompt,
+      speakText: opts.speakText || prompt,
+      visual: visual,
+      correctIndex: correctIndex,
+      // 오답 시 "정답은 ~이에요" 피드백 문구에 쓰일 짧은 설명(선택). 없으면 앱이 일반 문구로 대체한다.
+      correctLabel: opts.correctLabel || ''
+    };
+  }
+
   global.Utils = {
     randInt: randInt,
     pick: pick,
@@ -104,6 +120,7 @@
     mcFromLabels: mcFromLabels,
     zeroPad: zeroPad,
     mcItem: mcItem,
-    inputItem: inputItem
+    inputItem: inputItem,
+    hotspotItem: hotspotItem
   };
 })(window);

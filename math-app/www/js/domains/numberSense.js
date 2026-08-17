@@ -4,24 +4,26 @@
   var U = Utils, I = ICONS;
   var ICON_POOL = ['apple', 'marble', 'star', 'banana', 'candy'];
 
+  // 글을 못 읽는 학생도 풀 수 있도록, 텍스트 보기 대신 그림(왼쪽 묶음/오른쪽 묶음) 자체와
+  // 가운데 "=" 표시를 직접 탭해서 답하는 hotspot 구조. data-hotspot: 0=왼쪽, 1=오른쪽, 2=같음(=)
   function pairVisual(icon, leftCount, rightCount, leftArr, rightArr) {
     var leftSvg = leftArr === 'scatter' ? I.renderScatterGroup(icon, leftCount) : I.renderCountGroup(icon, leftCount);
     var rightSvg = rightArr === 'scatter' ? I.renderScatterGroup(icon, rightCount) : I.renderCountGroup(icon, rightCount);
     return '<div class="compare-pair">' +
-      '<div class="compare-side">' + leftSvg + '</div>' +
-      '<div class="compare-vs">VS</div>' +
-      '<div class="compare-side">' + rightSvg + '</div>' +
+      '<div class="compare-side" data-hotspot="0" tabindex="0" role="button" aria-label="왼쪽 묶음">' + leftSvg + '</div>' +
+      '<div class="compare-vs" data-hotspot="2" tabindex="0" role="button" aria-label="두 쪽이 똑같아요">=</div>' +
+      '<div class="compare-side" data-hotspot="1" tabindex="0" role="button" aria-label="오른쪽 묶음">' + rightSvg + '</div>' +
       '</div>';
   }
-
-  var OPTIONS = ['왼쪽이 더 많아요', '오른쪽이 더 많아요', '두 쪽이 똑같아요'];
 
   function buildCompareItem(mode, leftCount, rightCount, arrLeft, arrRight) {
     var icon = U.pick(ICON_POOL);
     var visual = pairVisual(icon, leftCount, rightCount, arrLeft, arrRight);
     var correctIndex = leftCount === rightCount ? 2 : (leftCount > rightCount ? 0 : 1);
-    return U.mcItem('어느 쪽이 더 많을까요? 그림을 보고 골라 보세요.', visual, OPTIONS, correctIndex, {
-      speakText: '어느 쪽이 더 많을까요?'
+    var correctLabel = leftCount === rightCount ? '두 쪽이 똑같아요' : (leftCount > rightCount ? '왼쪽 묶음' : '오른쪽 묶음');
+    return U.hotspotItem('어느 쪽이 더 많을까요? 더 많은 쪽 그림을 직접 짚어 보세요.', visual, correctIndex, {
+      speakText: '어느 쪽이 더 많을까요? 더 많은 쪽 그림을 짚어 보세요. 두 쪽이 같으면 가운데 = 표시를 짚어 보세요.',
+      correctLabel: correctLabel
     });
   }
 

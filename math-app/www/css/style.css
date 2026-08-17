@@ -224,6 +224,57 @@ input[type=text], input[type=url], input[type=number], select {
 .option-btn.reveal-correct { background: #e4f7e9; border-color: var(--good); }
 .option-btn:disabled { opacity: 0.7; }
 
+/* ---------- hotspot 문항: 그림(#quiz-visual) 안의 요소를 직접 탭해서 답한다 ---------- */
+[data-hotspot] { cursor: pointer; }
+
+/* HTML 블록 요소 hotspot (예: 수감각의 왼쪽/오른쪽 묶음, 가운데 "=" 표시) */
+.compare-side[data-hotspot], .compare-vs[data-hotspot] {
+  border-radius: var(--radius-md);
+  outline: 3px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.15s ease, background 0.15s ease, transform 0.08s ease;
+}
+.compare-side[data-hotspot] { padding: 8px; }
+.compare-side[data-hotspot]:hover, .compare-side[data-hotspot]:focus-visible,
+.compare-vs[data-hotspot]:hover, .compare-vs[data-hotspot]:focus-visible {
+  outline-color: var(--brand);
+  background: #fff6e8;
+}
+.compare-side[data-hotspot]:active, .compare-vs[data-hotspot]:active { transform: scale(0.97); }
+.compare-vs[data-hotspot] {
+  min-width: 56px;
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #e6ddc9;
+  background: #fffdf8;
+  box-shadow: 0 4px 0 #ddd0b3;
+}
+.compare-side[data-hotspot].selected-correct, .compare-vs[data-hotspot].selected-correct {
+  outline-color: var(--good); background: #e4f7e9;
+}
+.compare-side[data-hotspot].selected-wrong, .compare-vs[data-hotspot].selected-wrong {
+  outline-color: var(--low); background: #fbe7e5;
+}
+.compare-side[data-hotspot].reveal-correct, .compare-vs[data-hotspot].reveal-correct {
+  outline-color: var(--good); outline-style: dashed; background: #e4f7e9;
+}
+
+/* SVG 안의 hotspot(예: 시계 바늘). 실제 보이는 선은 가늘어도, 투명한 굵은 .hotspot-hit 선이
+   겹쳐져 있어 손가락으로도 쉽게 짚을 수 있다. */
+svg .hotspot .hotspot-tip { fill: transparent; transition: fill 0.15s ease; }
+svg .hotspot:hover line:not(.hotspot-hit), svg .hotspot:focus-visible line:not(.hotspot-hit) {
+  filter: drop-shadow(0 0 4px rgba(255, 158, 74, 0.9));
+}
+svg .hotspot:focus { outline: none; }
+svg .hotspot.selected-correct line:not(.hotspot-hit), svg .hotspot.reveal-correct line:not(.hotspot-hit) {
+  stroke: #2f7d4c;
+}
+svg .hotspot.selected-wrong line:not(.hotspot-hit) { stroke: #c23327; }
+svg .hotspot.selected-correct .hotspot-tip, svg .hotspot.reveal-correct .hotspot-tip { fill: #4caf6f; opacity: 0.85; }
+svg .hotspot.selected-wrong .hotspot-tip { fill: #e0625a; opacity: 0.85; }
+
 .numpad-input {
   display: flex;
   align-items: center;

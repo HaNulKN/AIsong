@@ -31,21 +31,17 @@
     });
   }
 
-  function level1() {
-    var pool = [
-      { hex: '#e05a3c', name: '빨간색' },
-      { hex: '#3c6fe0', name: '파란색' },
-      { hex: '#3fae5c', name: '초록색' },
-      { hex: '#e0a63a', name: '주황색' }
-    ];
-    var shuffled = U.shuffle(pool);
-    var hourColor = shuffled[0], minuteColor = shuffled[1];
+  function level1(itemIndex) {
+    // 글을 못 읽는 학생도 풀 수 있도록, 색 이름을 읽는 대신 시계 그림 안의 바늘을 직접 짚어서 답한다.
+    // data-hotspot: 0=짧은 바늘(시침), 1=긴 바늘(분침). 문항마다 번갈아 물어 두 바늘을 모두 연습한다.
+    var askLong = itemIndex % 2 === 0;
     var hour = U.randInt(1, 12), minute = U.pick([0, 15, 30, 45]);
-    var visual = I.renderClock(hour, minute, { hourColor: hourColor.hex, minuteColor: minuteColor.hex });
-    var names = shuffled.map(function (c) { return c.name; });
-    var mc = U.mcFromLabels(minuteColor.name, names);
-    return U.mcItem('긴 바늘(분침)은 무슨 색일까요?', visual, mc.labels, mc.correctIndex, {
-      speakText: '긴 바늘, 분침은 무슨 색일까요?'
+    var visual = I.renderClock(hour, minute, { hotspot: true });
+    var correctIndex = askLong ? 1 : 0;
+    var handName = askLong ? '긴 바늘(분침)' : '짧은 바늘(시침)';
+    return U.hotspotItem(handName + '을 시계에서 짚어 보세요.', visual, correctIndex, {
+      speakText: handName + '이 어디 있는지 시계에서 짚어 보세요.',
+      correctLabel: handName
     });
   }
 

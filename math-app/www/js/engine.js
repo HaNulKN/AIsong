@@ -41,6 +41,7 @@
 
   function gradeItem(item, userAnswer) {
     if (item.type === 'mc') return userAnswer === item.correctIndex;
+    if (item.type === 'hotspot') return userAnswer === item.correctIndex;
     if (item.type === 'input') return Number(userAnswer) === Number(item.correctValue);
     return false;
   }
