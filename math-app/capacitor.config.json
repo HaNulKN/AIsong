@@ -1,0 +1,8 @@
+{
+  "appId": "kr.co.mathdiag.app",
+  "appName": "수학 진단평가",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}

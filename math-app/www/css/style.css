@@ -1,0 +1,464 @@
+/* style.css — 발달장애 학생용 수학 진단평가 앱. 밝은 색, 큰 폰트, 터치 친화적. */
+:root {
+  --bg: #fef9f0;
+  --panel: #ffffff;
+  --ink: #3a3226;
+  --ink-soft: #7a6f5f;
+  --brand: #ff9e4a;
+  --brand-dark: #e0803a;
+  --accent-blue: #4a90d9;
+  --accent-green: #5aa96f;
+  --accent-purple: #8a63c9;
+  --accent-red: #e0625a;
+  --good: #4caf6f;
+  --mid: #f0b429;
+  --low: #e0625a;
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --shadow: 0 6px 18px rgba(120, 90, 40, 0.12);
+  font-size: 18px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+#app {
+  max-width: 1000px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen { display: none; padding: 18px 20px 40px; animation: fadeIn 0.25s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+h1, h2, h3 { margin: 0 0 10px; }
+h1 { font-size: 1.7rem; }
+h2 { font-size: 1.35rem; }
+p { line-height: 1.55; }
+
+.app-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--brand), #ffc373);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.app-title-bar h1 { font-size: 1.25rem; margin: 0; color: #fff; }
+.app-title-bar .subtitle { font-size: 0.85rem; opacity: 0.9; }
+
+.panel {
+  background: var(--panel);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+/* ---------- 버튼 공용 ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 22px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 4px 0 var(--brand-dark);
+  transition: transform 0.08s ease;
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--brand-dark); }
+.btn.secondary { background: #e9e2d3; color: var(--ink); box-shadow: 0 4px 0 #cfc4a9; }
+.btn.secondary:active { box-shadow: 0 1px 0 #cfc4a9; }
+.btn.ghost { background: transparent; color: var(--brand-dark); box-shadow: none; border: 2px solid var(--brand); }
+.btn.small { padding: 9px 14px; font-size: 0.9rem; box-shadow: 0 3px 0 var(--brand-dark); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+
+.speak-btn {
+  border: none;
+  background: #fff3df;
+  color: var(--brand-dark);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 #e6c98a;
+  flex-shrink: 0;
+}
+.speak-btn:active { transform: translateY(2px); box-shadow: none; }
+
+.tts-active { background: #fff2b8 !important; outline: 3px solid #ffd23f; border-radius: 10px; }
+
+/* ---------- 폼 요소 ---------- */
+label { display: block; font-weight: 700; margin-bottom: 6px; }
+input[type=text], input[type=url], input[type=number], select {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1.05rem;
+  border: 2px solid #e6ddc9;
+  border-radius: var(--radius-md);
+  background: #fffdf8;
+  color: var(--ink);
+}
+.field { margin-bottom: 16px; }
+
+/* ---------- 학생 프로필 / 영역 선택 ---------- */
+.domain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+.domain-card {
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 3px solid transparent;
+  background: #fff;
+  box-shadow: var(--shadow);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.domain-card .dot { width: 16px; height: 16px; border-radius: 50%; }
+.domain-card.done { border-color: var(--good); }
+.domain-card select { margin-top: 8px; }
+.domain-card .level-desc { font-size: 0.82rem; color: var(--ink-soft); min-height: 2.4em; }
+
+/* ---------- 진행 경로(게임판) ---------- */
+.progress-bar-wrap {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.progress-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+.progress-level-badge { font-weight: 800; color: var(--brand-dark); }
+.progress-path { display: flex; gap: 8px; flex-wrap: wrap; }
+.progress-dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #efe7d6; border: 2px solid #ddd0b3;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700; color: var(--ink-soft);
+  transition: all 0.2s ease;
+}
+.progress-dot.correct { background: var(--good); border-color: #3d8a56; color: #fff; }
+.progress-dot.wrong { background: #f6c9c4; border-color: var(--low); color: #8a2f28; }
+.progress-dot.skip { background: #e6e0d2; border-color: #c9c2ac; color: #9a917d; }
+.progress-dot.current { box-shadow: 0 0 0 4px #ffe3ae; }
+.streak-note { font-size: 0.85rem; color: var(--ink-soft); margin-top: 6px; }
+
+/* ---------- 문제 화면 ---------- */
+.quiz-card { text-align: center; }
+.quiz-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.quiz-visual { display: flex; justify-content: center; margin: 12px 0 20px; }
+.quiz-visual svg { max-width: 100%; height: auto; }
+.quiz-visual > svg { max-width: 340px; display: block; margin: 0 auto; }
+.compare-pair { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.compare-side svg { max-width: 260px; }
+.compare-vs { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); }
+.big-number-visual { font-size: 2.4rem; font-weight: 800; color: var(--accent-blue); letter-spacing: 2px; }
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+.option-btn {
+  border: 3px solid #e6ddc9;
+  background: #fffdf8;
+  border-radius: var(--radius-md);
+  padding: 18px 12px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 0 #ddd0b3;
+}
+.option-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #ddd0b3; }
+.option-btn.visual { flex-direction: column; padding: 10px; }
+.option-btn.visual svg { max-width: 100px; }
+.option-btn.selected-correct { background: #e4f7e9; border-color: var(--good); }
+.option-btn.selected-wrong { background: #fbe7e5; border-color: var(--low); }
+.option-btn.reveal-correct { background: #e4f7e9; border-color: var(--good); }
+.option-btn:disabled { opacity: 0.7; }
+
+/* ---------- hotspot 문항: 그림(#quiz-visual) 안의 요소를 직접 탭해서 답한다 ---------- */
+[data-hotspot] { cursor: pointer; }
+
+/* HTML 블록 요소 hotspot (예: 수감각의 왼쪽/오른쪽 묶음, 가운데 "=" 표시) */
+.compare-side[data-hotspot], .compare-vs[data-hotspot] {
+  border-radius: var(--radius-md);
+  outline: 3px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.15s ease, background 0.15s ease, transform 0.08s ease;
+}
+.compare-side[data-hotspot] { padding: 8px; }
+.compare-side[data-hotspot]:hover, .compare-side[data-hotspot]:focus-visible,
+.compare-vs[data-hotspot]:hover, .compare-vs[data-hotspot]:focus-visible {
+  outline-color: var(--brand);
+  background: #fff6e8;
+}
+.compare-side[data-hotspot]:active, .compare-vs[data-hotspot]:active { transform: scale(0.97); }
+.compare-vs[data-hotspot] {
+  min-width: 56px;
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #e6ddc9;
+  background: #fffdf8;
+  box-shadow: 0 4px 0 #ddd0b3;
+}
+.compare-side[data-hotspot].selected-correct, .compare-vs[data-hotspot].selected-correct {
+  outline-color: var(--good); background: #e4f7e9;
+}
+.compare-side[data-hotspot].selected-wrong, .compare-vs[data-hotspot].selected-wrong {
+  outline-color: var(--low); background: #fbe7e5;
+}
+.compare-side[data-hotspot].reveal-correct, .compare-vs[data-hotspot].reveal-correct {
+  outline-color: var(--good); outline-style: dashed; background: #e4f7e9;
+}
+
+/* SVG 안의 hotspot(예: 시계 바늘). 실제 보이는 선은 가늘어도, 투명한 굵은 .hotspot-hit 선이
+   겹쳐져 있어 손가락으로도 쉽게 짚을 수 있다. */
+svg .hotspot .hotspot-tip { fill: transparent; transition: fill 0.15s ease; }
+svg .hotspot:hover line:not(.hotspot-hit), svg .hotspot:focus-visible line:not(.hotspot-hit) {
+  filter: drop-shadow(0 0 4px rgba(255, 158, 74, 0.9));
+}
+svg .hotspot:focus { outline: none; }
+svg .hotspot.selected-correct line:not(.hotspot-hit), svg .hotspot.reveal-correct line:not(.hotspot-hit) {
+  stroke: #2f7d4c;
+}
+svg .hotspot.selected-wrong line:not(.hotspot-hit) { stroke: #c23327; }
+svg .hotspot.selected-correct .hotspot-tip, svg .hotspot.reveal-correct .hotspot-tip { fill: #4caf6f; opacity: 0.85; }
+svg .hotspot.selected-wrong .hotspot-tip { fill: #e0625a; opacity: 0.85; }
+
+.numpad-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+.numpad-input input {
+  width: 140px;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+  padding: 12px;
+}
+.numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 280px;
+  margin: 0 auto 16px;
+}
+.numpad-key {
+  background: #fff;
+  border: 2px solid #e6ddc9;
+  border-radius: var(--radius-md);
+  padding: 16px 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  box-shadow: 0 3px 0 #ddd0b3;
+}
+.numpad-key:active { transform: translateY(2px); box-shadow: none; }
+
+.feedback-banner {
+  margin-top: 16px;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.feedback-banner.correct { background: #e4f7e9; color: #2f7d4c; }
+.feedback-banner.wrong { background: #fef3e2; color: #a06a1a; }
+
+@keyframes bounce { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-14px);} }
+
+/* 정답/오답 시 카드 전체에 주는 역동적인 모션 (음성 안내 대신 동작+효과음으로 피드백) */
+.quiz-card.pulse-correct { animation: pulseCorrect 0.5s cubic-bezier(.34,1.56,.64,1); }
+@keyframes pulseCorrect {
+  0% { transform: scale(1) rotate(0deg); }
+  35% { transform: scale(1.045) rotate(-0.8deg); }
+  65% { transform: scale(1.015) rotate(0.6deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.quiz-card.shake-wrong { animation: shakeWrong 0.45s ease; }
+@keyframes shakeWrong {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(4px); }
+}
+
+/* 정답 시 별이 사방으로 튀어나가는 파티클 연출 */
+.star-row { position: relative; display: flex; justify-content: center; gap: 6px; margin: 8px 0; min-height: 34px; }
+.burst-particle {
+  position: absolute;
+  left: 50%; top: 50%;
+  opacity: 0;
+  animation: burstFly 0.75s cubic-bezier(.2,.7,.3,1) forwards;
+}
+.burst-particle svg { width: 30px; height: 30px; display: block; }
+@keyframes burstFly {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(0deg); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.15) rotate(var(--rot)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quiz-card.pulse-correct, .quiz-card.shake-wrong, .burst-particle { animation: none; }
+}
+
+.teacher-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 2px dashed #e6ddc9;
+}
+.teacher-controls .label { width: 100%; text-align: center; font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 4px; }
+
+/* ---------- 결과 화면 ---------- */
+.result-card { margin-bottom: 22px; }
+.result-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.badge-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+}
+.badge-pill.completed { background: var(--good); }
+.badge-pill.wrong_streak { background: var(--mid); color: #5b3f00; }
+.badge-pill.teacher_stopped { background: var(--low); }
+
+.staircase {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  margin: 22px 0 8px;
+  min-height: 140px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.stair-step {
+  flex: 1;
+  min-width: 46px;
+  background: #efe7d6;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  border: 2px solid #ddd0b3;
+  border-bottom: none;
+}
+.stair-step.reached { background: #ffe3ae; border-color: var(--brand); }
+.stair-step .stair-character { position: absolute; top: -58px; left: 50%; transform: translateX(-50%); }
+.stair-step .stair-character svg { width: 56px; height: 56px; }
+
+.gauge-wrap { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.gauge-track { flex: 1; height: 16px; background: #efe7d6; border-radius: 999px; overflow: hidden; }
+.gauge-fill { height: 100%; border-radius: 999px; background: var(--good); }
+.reach-sentence { font-size: 1.1rem; font-weight: 700; margin: 10px 0 4px; }
+
+.badges-earned { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.badges-earned svg { width: 56px; height: 56px; }
+
+/* ---------- 요약(레이더) ---------- */
+.radar-wrap { display: flex; justify-content: center; margin: 10px 0; }
+.summary-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.summary-bar-row { display: flex; align-items: center; gap: 10px; }
+.summary-bar-label { width: 64px; font-weight: 700; flex-shrink: 0; }
+.summary-bar-track { flex: 1; height: 20px; background: #efe7d6; border-radius: 999px; overflow: hidden; }
+.summary-bar-fill { height: 100%; border-radius: 999px; }
+.summary-bar-pct { width: 70px; text-align: right; font-weight: 700; flex-shrink: 0; font-size: 0.9rem; }
+.legend-row { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; font-size: 0.85rem; }
+.legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; }
+
+/* ---------- 설정 ---------- */
+.sync-status { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; }
+
+/* ---------- 진열대(화폐) ---------- */
+.quiz-visual .print-page { display: none; }
+
+footer.nav-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+}
+
+/* ---------- 인쇄 ---------- */
+#printReportRoot { display: none; }
+.print-page { padding: 20px; }
+.print-meta { display: flex; gap: 24px; margin: 10px 0 16px; font-size: 1rem; }
+.print-radar { display: flex; justify-content: center; margin: 12px 0; }
+.print-radar img { width: 320px; height: 320px; }
+.print-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.print-table th, .print-table td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; font-size: 0.92rem; }
+.print-table th { background: #f3ead9; }
+.print-footnote { font-size: 0.78rem; color: #666; margin-top: 14px; }
+
+@media print {
+  body * { visibility: hidden; }
+  #printReportRoot, #printReportRoot * { visibility: visible; }
+  #printReportRoot { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
+}
+
+@media (max-width: 520px) {
+  :root { font-size: 16px; }
+  .compare-side svg { max-width: 170px; }
+}
