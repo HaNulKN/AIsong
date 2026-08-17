@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ff9e4a">
+<title>수학 진단평가</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <div class="app-title-bar">
+    <div>
+      <h1>🧮 수학 진단평가</h1>
+      <div class="subtitle">발달장애 학생을 위한 그림 진단</div>
+    </div>
+    <button type="button" class="btn small secondary" id="btn-settings-nav">⚙️ 설정</button>
+  </div>
+
+  <!-- 1. 학생 프로필 -->
+  <section class="screen active" id="screen-profile">
+    <div class="panel">
+      <h2>학생 정보 입력</h2>
+      <div class="field">
+        <label for="input-student-name">학생 이름</label>
+        <input type="text" id="input-student-name" placeholder="예: 김민준">
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn" id="btn-start-profile">다음: 영역 선택하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 영역 선택 + 시작 레벨 지정 -->
+  <section class="screen" id="screen-domain-select">
+    <div class="panel">
+      <h2 id="domain-select-title">영역을 선택하세요</h2>
+      <p>학생에게 맞는 시작 레벨을 지정한 뒤 진단을 시작할 수 있어요. 이미 완료한 영역은 초록 테두리로 표시됩니다.</p>
+      <div class="domain-grid" id="domain-grid"></div>
+      <div class="btn-row">
+        <button type="button" class="btn secondary" id="btn-goto-summary">전체 요약 보기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 문제 풀이 -->
+  <section class="screen" id="screen-quiz">
+    <div class="progress-bar-wrap">
+      <div class="progress-top-row">
+        <span class="progress-level-badge" id="quiz-level-badge">레벨 1</span>
+        <span id="quiz-domain-name"></span>
+      </div>
+      <div class="progress-path" id="progress-path"></div>
+      <div class="streak-note" id="streak-note"></div>
+    </div>
+
+    <div class="panel quiz-card">
+      <div class="quiz-prompt speak-highlight-host" id="quiz-prompt-host">
+        <span id="quiz-prompt-text"></span>
+        <button type="button" class="speak-btn" id="quiz-speak-btn" aria-label="문제 다시 듣기">🔊</button>
+      </div>
+      <div class="quiz-visual" id="quiz-visual"></div>
+      <div id="quiz-answer-area"></div>
+      <div class="feedback-banner" id="quiz-feedback" style="display:none;"></div>
+      <div class="character-stage" id="character-stage"></div>
+      <div class="star-row" id="star-row"></div>
+    </div>
+
+    <div class="teacher-controls">
+      <div class="label">교사용 보조 컨트롤</div>
+      <button type="button" class="btn ghost small" id="btn-skip-item">문항 건너뛰기</button>
+      <button type="button" class="btn ghost small" id="btn-skip-level-prev">이전 레벨로</button>
+      <button type="button" class="btn ghost small" id="btn-skip-level-next">다음 레벨로</button>
+      <button type="button" class="btn ghost small" id="btn-end-now">진단 즉시 종료</button>
+    </div>
+  </section>
+
+  <!-- 4. 영역별 결과 -->
+  <section class="screen" id="screen-result-domain">
+    <div class="panel result-card" id="result-domain-card"></div>
+    <div class="btn-row">
+      <button type="button" class="btn" id="btn-back-to-domains">다른 영역 진단하기</button>
+      <button type="button" class="btn secondary" id="btn-to-summary-from-result">전체 요약 보기</button>
+    </div>
+  </section>
+
+  <!-- 5. 전체 요약 -->
+  <section class="screen" id="screen-summary">
+    <div class="panel">
+      <h2 id="summary-title">전체 진단 요약</h2>
+      <div class="radar-wrap"><canvas id="radar-canvas" width="360" height="360"></canvas></div>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#4caf6f"></span>강점 (70% 이상)</span>
+        <span><span class="legend-dot" style="background:#f0b429"></span>보통 (40~69%)</span>
+        <span><span class="legend-dot" style="background:#e0625a"></span>지원 필요 (40% 미만)</span>
+      </div>
+      <div class="summary-bars" id="summary-bars"></div>
+      <h3 style="margin-top:22px;">획득한 배지</h3>
+      <div class="badges-earned" id="summary-badges"></div>
+      <div class="btn-row">
+        <button type="button" class="btn" id="btn-print-report">🖨️ 인쇄 리포트</button>
+        <button type="button" class="btn secondary" id="btn-back-to-domains-2">영역 다시 진단하기</button>
+        <button type="button" class="btn ghost" id="btn-new-student">새 학생 시작하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 설정 -->
+  <section class="screen" id="screen-settings">
+    <div class="panel">
+      <h2>설정</h2>
+      <div class="field">
+        <label for="input-sheets-url">Google Apps Script 웹앱 URL</label>
+        <input type="url" id="input-sheets-url" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn" id="btn-save-settings">저장</button>
+        <button type="button" class="btn secondary" id="btn-sync-now">지금 동기화</button>
+      </div>
+      <div class="sync-status" id="sync-status"></div>
+      <p style="margin-top:18px; font-size:0.85rem; color:var(--ink-soft);">
+        Google Apps Script 배포 방법은 <code>math-app/README.md</code>와
+        <code>math-app/google-apps-script/Code.gs</code> 안내를 참고하세요.
+      </p>
+      <div class="btn-row">
+        <button type="button" class="btn ghost" id="btn-close-settings">닫기</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="printReportRoot"></div>
+
+<script src="js/utils.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/speech.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/print.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/domains/numberSense.js"></script>
+<script src="js/domains/counting.js"></script>
+<script src="js/domains/addition.js"></script>
+<script src="js/domains/subtraction.js"></script>
+<script src="js/domains/multiplication.js"></script>
+<script src="js/domains/clock.js"></script>
+<script src="js/domains/money.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

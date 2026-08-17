@@ -1,0 +1,17 @@
+{
+  "name": "math-diagnostic-app",
+  "version": "1.0.0",
+  "description": "발달장애 학생을 위한 수학 진단평가 안드로이드 앱 (Capacitor 래핑)",
+  "private": true,
+  "scripts": {
+    "sync": "cap sync android",
+    "open:android": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}
