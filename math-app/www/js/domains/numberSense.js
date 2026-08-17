@@ -6,23 +6,31 @@
 
   // 글을 못 읽는 학생도 풀 수 있도록, 텍스트 보기 대신 그림(왼쪽 묶음/오른쪽 묶음) 자체와
   // 가운데 "=" 표시를 직접 탭해서 답하는 hotspot 구조. data-hotspot: 0=왼쪽, 1=오른쪽, 2=같음(=)
-  function pairVisual(icon, leftCount, rightCount, leftArr, rightArr) {
+  // showEqual이 false인 레벨(예: L1 큰 차이 비교)은 두 묶음이 항상 다르므로 "=" 탭 영역을 아예 표시하지 않는다.
+  function pairVisual(icon, leftCount, rightCount, leftArr, rightArr, showEqual) {
     var leftSvg = leftArr === 'scatter' ? I.renderScatterGroup(icon, leftCount) : I.renderCountGroup(icon, leftCount);
     var rightSvg = rightArr === 'scatter' ? I.renderScatterGroup(icon, rightCount) : I.renderCountGroup(icon, rightCount);
+    var middle = showEqual
+      ? '<div class="compare-vs" data-hotspot="2" tabindex="0" role="button" aria-label="두 쪽이 똑같아요">=</div>'
+      : '<div class="compare-vs compare-vs-plain" aria-hidden="true">VS</div>';
     return '<div class="compare-pair">' +
       '<div class="compare-side" data-hotspot="0" tabindex="0" role="button" aria-label="왼쪽 묶음">' + leftSvg + '</div>' +
-      '<div class="compare-vs" data-hotspot="2" tabindex="0" role="button" aria-label="두 쪽이 똑같아요">=</div>' +
+      middle +
       '<div class="compare-side" data-hotspot="1" tabindex="0" role="button" aria-label="오른쪽 묶음">' + rightSvg + '</div>' +
       '</div>';
   }
 
   function buildCompareItem(mode, leftCount, rightCount, arrLeft, arrRight) {
     var icon = U.pick(ICON_POOL);
-    var visual = pairVisual(icon, leftCount, rightCount, arrLeft, arrRight);
+    var showEqual = mode !== 'extreme'; // extreme(L1)은 항상 다른 두 수량만 나오므로 "같아요"가 정답일 수 없다
+    var visual = pairVisual(icon, leftCount, rightCount, arrLeft, arrRight, showEqual);
     var correctIndex = leftCount === rightCount ? 2 : (leftCount > rightCount ? 0 : 1);
     var correctLabel = leftCount === rightCount ? '두 쪽이 똑같아요' : (leftCount > rightCount ? '왼쪽 묶음' : '오른쪽 묶음');
+    var speakText = showEqual
+      ? '어느 쪽이 더 많을까요? 더 많은 쪽 그림을 짚어 보세요. 두 쪽이 같으면 가운데 = 표시를 짚어 보세요.'
+      : '어느 쪽이 더 많을까요? 더 많은 쪽 그림을 짚어 보세요.';
     return U.hotspotItem('어느 쪽이 더 많을까요? 더 많은 쪽 그림을 직접 짚어 보세요.', visual, correctIndex, {
-      speakText: '어느 쪽이 더 많을까요? 더 많은 쪽 그림을 짚어 보세요. 두 쪽이 같으면 가운데 = 표시를 짚어 보세요.',
+      speakText: speakText,
       correctLabel: correctLabel
     });
   }

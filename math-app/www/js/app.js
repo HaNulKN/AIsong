@@ -49,8 +49,21 @@
     return d.getFullYear() + '-' + Utils.zeroPad(d.getMonth() + 1, 2) + '-' + Utils.zeroPad(d.getDate(), 2);
   }
 
-  function characterSvg(mood) {
-    return ICONS.buildScene([{ icon: 'character', x: 45, y: 58, scale: 1.7, extra: mood }], { width: 90, height: 100, label: '캐릭터' });
+  // 정답 시 화면에 흩뿌릴 별 파티클 여러 개를 만들어 star-row에 붙인다 (역동적인 정답 연출)
+  function burstStars(count) {
+    var row = $('star-row');
+    for (var i = 0; i < count; i++) {
+      var wrap = document.createElement('div');
+      wrap.className = 'burst-particle';
+      var angle = (Math.PI * 2 * i) / count + (Math.random() * 0.6 - 0.3);
+      var dist = 60 + Math.random() * 40;
+      wrap.style.setProperty('--dx', (Math.cos(angle) * dist).toFixed(1) + 'px');
+      wrap.style.setProperty('--dy', (Math.sin(angle) * dist - 20).toFixed(1) + 'px');
+      wrap.style.setProperty('--rot', (Math.random() * 360 - 180).toFixed(0) + 'deg');
+      wrap.style.animationDelay = (i * 0.03) + 's';
+      wrap.innerHTML = starSvg();
+      row.appendChild(wrap);
+    }
   }
 
   function badgeSvg(color, size) {
@@ -164,9 +177,8 @@
     $('quiz-visual').innerHTML = item.visual || '';
     $('quiz-feedback').style.display = 'none';
     $('quiz-feedback').className = 'feedback-banner';
-    $('character-stage').className = 'character-stage';
-    $('character-stage').innerHTML = characterSvg('idle');
     $('star-row').innerHTML = '';
+    document.querySelector('.quiz-card').classList.remove('pulse-correct', 'shake-wrong');
 
     var answerArea = $('quiz-answer-area');
     if (item.type === 'mc') {
@@ -285,18 +297,14 @@
     }
 
     var fb = $('quiz-feedback');
+    var quizCard = document.querySelector('.quiz-card');
     fb.style.display = 'block';
     var msg;
     if (res.correct) {
       fb.className = 'feedback-banner correct';
       msg = '정답이에요! 참 잘했어요.';
-      $('character-stage').className = 'character-stage happy';
-      $('character-stage').innerHTML = characterSvg('happy');
-      var star = document.createElement('div');
-      star.innerHTML = starSvg();
-      var starEl = star.firstChild;
-      starEl.classList.add('pop');
-      $('star-row').appendChild(starEl);
+      quizCard.classList.add('pulse-correct');
+      burstStars(6);
       Sound.playCorrect();
     } else {
       fb.className = 'feedback-banner wrong';
@@ -305,8 +313,7 @@
       else if (isHotspot) correctText = item.correctLabel || '그림에 초록색으로 표시된 곳';
       else correctText = String(item.correctValue) + (item.suffix || '');
       msg = '괜찮아요, 정답은 ' + correctText + '(이)에요.';
-      $('character-stage').className = 'character-stage soft';
-      $('character-stage').innerHTML = characterSvg('soft');
+      quizCard.classList.add('shake-wrong');
       Sound.playGentle();
     }
     if (res.promoted && !res.finished) {
@@ -314,7 +321,6 @@
       setTimeout(function () { Sound.playPromote(); }, 260);
     }
     fb.textContent = msg;
-    setTimeout(function () { Speech.speak(msg, fb); }, 350);
 
     var cont = document.createElement('button');
     cont.type = 'button';
@@ -387,7 +393,7 @@
       var h = 34 + idx * (110 / Math.max(1, domain.levels.length - 1));
       var reached = idx === summary.finalLevelIndex;
       return '<div class="stair-step' + (reached ? ' reached' : '') + '" style="height:' + h + 'px;">' +
-        (reached ? '<div class="stair-character">' + characterSvg('cheer') + '</div>' : '') +
+        (reached ? '<div class="stair-character">' + starSvg() + '</div>' : '') +
         (idx + 1) +
         '</div>';
     }).join('');

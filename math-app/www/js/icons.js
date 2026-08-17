@@ -68,32 +68,6 @@
         '<text x="-3" y="4.5" text-anchor="middle" font-size="8.5" font-weight="700" fill="' + dark + '">' + value + '</text>' +
         '</g>';
     },
-    character: function (mood) {
-      mood = mood || 'idle';
-      var mouth = '<path d="M -5 6 Q 0 10 5 6" stroke="#5a3d2b" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
-      var eyes = '<circle cx="-5" cy="-1" r="2.1" fill="#3a2a20"/><circle cx="5" cy="-1" r="2.1" fill="#3a2a20"/>';
-      if (mood === 'happy' || mood === 'cheer') {
-        mouth = '<path d="M -6 5 Q 0 12 6 5" stroke="#5a3d2b" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
-        eyes = '<path d="M -7 -1 Q -5 -3.5 -3 -1" stroke="#3a2a20" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
-          '<path d="M 3 -1 Q 5 -3.5 7 -1" stroke="#3a2a20" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
-      } else if (mood === 'soft') {
-        mouth = '<path d="M -4 7 Q 0 5.5 4 7" stroke="#5a3d2b" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
-      }
-      var armWiggle = mood === 'cheer' ? 'rotate(-25 -16 4)' : 'rotate(0)';
-      var armWiggle2 = mood === 'cheer' ? 'rotate(25 16 4)' : 'rotate(0)';
-      return '<g>' +
-        '<ellipse cx="-9" cy="-19" rx="4" ry="10" fill="#ffe3ec" stroke="#f0a8c4" stroke-width="1.3" transform="rotate(-12 -9 -19)"/>' +
-        '<ellipse cx="9" cy="-19" rx="4" ry="10" fill="#ffe3ec" stroke="#f0a8c4" stroke-width="1.3" transform="rotate(12 9 -19)"/>' +
-        '<ellipse cx="0" cy="2" rx="17" ry="15" fill="#ffffff" stroke="#e9c6d6" stroke-width="1.6"/>' +
-        '<ellipse cx="-9" cy="4" rx="9" ry="6" fill="#ffffff" transform="' + armWiggle + '"/>' +
-        '<ellipse cx="9" cy="4" rx="9" ry="6" fill="#ffffff" transform="' + armWiggle2 + '"/>' +
-        eyes +
-        '<ellipse cx="0" cy="3" rx="2.4" ry="1.8" fill="#f4a5c0"/>' +
-        mouth +
-        '<ellipse cx="-8" cy="1" rx="2.6" ry="1.6" fill="#ffd2e2" opacity="0.8"/>' +
-        '<ellipse cx="8" cy="1" rx="2.6" ry="1.6" fill="#ffd2e2" opacity="0.8"/>' +
-        '</g>';
-    },
     badge: function (color) {
       color = color || '#f0a63a';
       return '<g><circle cx="0" cy="-2" r="16" fill="' + color + '" stroke="#00000022" stroke-width="1.5"/>' +
